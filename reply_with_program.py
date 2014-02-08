@@ -83,7 +83,7 @@ class ReqAnswer:
 
     @classmethod
     def get_tweet_text_as_list(self,tweet):
-        return tweet.GetText().split(' ')
+        return re.split('[\s\"\']',tweet.GetText())
 
     @classmethod
     def read_last_tweet_id(self):
