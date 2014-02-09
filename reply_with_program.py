@@ -46,17 +46,33 @@ class ReqAnswer:
         ltid = self.read_last_tweet_id()
         if ltid == '':
             ltid = 0
+
+        # refollows before get timeline
+        self.refollow()
         timeline = self.get_my_timeline(ltid)
-        # remember the latest tweet id
+
+        # remembers the latest tweet id
         if timeline != []:
             self.write_last_tweet_id(str(timeline[0].GetId()))
+        
+        # gets a list of tweets include hash tag "nhk_reqanswer"
         hashed_list = self.get_hashed_tweets(timeline,'nhk_reqanswer')
         
+        # replies to the tweets
         crt = CreateReplyText()
-        dts = [datetime.datetime.today(), datetime.datetime.today() + datetime.timedelta(days=1)]
+        # the target programs are today's and tomorrow's
+        dts = [datetime.datetime.today(),datetime.datetime.today() + datetime.timedelta(days=1)]
+
         for dt in dts:
-            crt.create_json_with_all_area(dt)
+
+            # reads json file
+            if not crt.create_json_with_all_area(dt):
+                return False
+
+            # extracts tweet from the list
             for tweet in hashed_list:
+
+                # creates text to reply
                 words = self.get_tweet_text_as_list(tweet)
                 service, words = self.remove_unuse_texts(words)
                 #print service, words[0]
@@ -64,8 +80,16 @@ class ReqAnswer:
                 msg = '@' + tweet.user.screen_name
                 for body in msg_list:
                     msg = msg + ' ' + body
-                if msg_list != []:
-                    self.reply_to_tweet_id(tweet.GetId(),msg)
+
+                # if there are no programs, replies to the tweet with a message no programs found
+                if msg_list == []:
+                    msg = msg + ' ' + 'no programs with'
+                    for word in words:
+                        msg = msg + ' ' + word
+
+                self.reply_to_tweet_id(tweet.GetId(),msg)
+
+        return True
 
     @classmethod
     def remove_unuse_texts(self,words):
@@ -98,6 +122,23 @@ class ReqAnswer:
         f = open(self.last_tweet_id_file,'w')
         f.write(tid)
         f.close()
+
+    @classmethod
+    def follow(self,user):
+        try:
+            self.api.CreateFriendship(user)
+        except:
+            pass
+
+    @classmethod
+    def refollow(self):
+        try:
+            followers = self.api.GetFollowers()
+        except:
+            print 'could not get followers, may not be authenticated.'
+        for follower in followers:
+            user = follower.screen_name
+            self.follow(user)
 
 def main():
     ra = ReqAnswer('.twitter_tokens')

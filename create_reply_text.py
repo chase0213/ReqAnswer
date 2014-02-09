@@ -11,9 +11,13 @@ class CreateReplyText:
 
     @classmethod
     def read_json(self,fullpath):
-        for line in open(fullpath,'r'):
-            self.obj = json.loads(line)
-
+        try:
+            for line in open(fullpath,'r'):
+                self.obj = json.loads(line)
+            return True
+        except:
+            return False
+        
     @classmethod
     def get_fullpath_for_itreration(self,itr,dt):
         path = self.log_root + dt.strftime("%Y/%m/%d/")
@@ -72,12 +76,12 @@ class CreateReplyText:
     @classmethod
     def create_json_with_all_area(self,dt):
         fullpath = self.get_fullpath_for_itreration("130",dt)
-        self.read_json(fullpath)
+        return self.read_json(fullpath)
 
 def main():
     crt = CreateReplyText()
-    crt.create_json_with_all_area(self.dt)
-    crt.grep_words_from_titles([u'アニメ'],'e1')
+    crt.create_json_with_all_area(crt.dt)
+    crt.grep_words_from_titles([u'オリンピック'],'a1')
 
 if __name__ == '__main__':
     main()
